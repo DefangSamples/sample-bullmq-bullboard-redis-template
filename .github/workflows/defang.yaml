@@ -22,7 +22,9 @@ jobs:
   defang:
     name: Defang ${{ github.event.inputs.action || 'up' }} ${{
       github.event.inputs.stack || 'default stack' }}
-    environment: defang-${{ github.event.inputs.stack || 'production' }}
+    environment:
+      name: defang-${{ github.event.inputs.stack || 'production' }}
+      url: ${{ steps.deploy.outputs.endpoint }}
     runs-on: ubuntu-latest
     timeout-minutes: 70
     permissions:
@@ -39,18 +41,14 @@ jobs:
 
       - name: Defang ${{ github.event.inputs.action || 'up' }} ${{
           github.event.inputs.stack || 'default stack' }}
+        id: deploy
         uses: DefangLabs/defang-github-action@v2
         with:
           command: ${{ github.event.inputs.action || 'up' }}
           stack: ${{ github.event.inputs.stack || '' }}
+          summary: ${{ (github.event.inputs.action || 'up') != 'down' }}
           config-vars-init-random: BOARD_PASSWORD
           config-env-vars: QUEUE
         env:
           BOARD_PASSWORD: ${{ secrets.BOARD_PASSWORD }}
           QUEUE: ${{ secrets.QUEUE }}
-
-      - name: Deployment Summary
-        uses: DefangLabs/defang-github-action@v2
-        with:
-          command: services
-          stack: ${{ github.event.inputs.stack || '' }}
